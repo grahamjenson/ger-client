@@ -1,0 +1,23 @@
+{
+  "name": "ger-client",
+  "version": "0.0.1",
+  "description": "Client to the Heroku Add-on Ger (currently in Alpha)",
+  "url": "https://github.com/grahamjenson/ger-client",
+  "main": "index.coffee",
+  "keywords": ["ger", "heroku", "client"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/grahamjenson/ger-client"
+  },
+  "author": {
+    "name": "Graham Jenson",
+    "email": "grahamjenson@maori.geek.nz",
+    "url": "http://www.maori.geek.nz/"
+  },
+  "license": "MIT",
+  "dependencies"  : {
+    "q": "1.0.1",
+    "form-data": "0.1.4",
+    "q-io": "1.11.3"
+  }
+}
