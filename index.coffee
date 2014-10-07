@@ -13,19 +13,19 @@ parse_response_into_json_status = (response) ->
   )
 
 class GERClient
-  constructor : (@server_uri, @tenant_id) ->
+  constructor : (@ger_uri) ->
 
   event: (person, action, thing, session) ->
     req = { 
       method: "POST", 
       body: [JSON.stringify({person: person, action: action, thing: thing, session: session})], 
-      url: "#{@server_uri}/tenant/#{@tenant_id}/events"
+      url: "#{@ger_uri}/events"
     }
     qhttp.request(req)
     .then(parse_response_into_json_status)
 
   get_event: (person, action, thing) ->
-    url = "#{@server_uri}/tenant/#{@tenant_id}/events?"
+    url = "#{@ger_uri}/events?"
     params = []
     params.push "person=#{person}" if person
     params.push "action=#{action}" if action
@@ -36,17 +36,17 @@ class GERClient
     .then(parse_response_into_json_status)
 
   action: (action, weight) ->
-    req = { method: "PUT", body: [JSON.stringify({weight: weight})], url: "#{@server_uri}/tenant/#{@tenant_id}/actions/#{action}"}
+    req = { method: "PUT", body: [JSON.stringify({weight: weight})], url: "#{@ger_uri}/actions/#{action}"}
     qhttp.request(req)
     .then(parse_response_into_json_status)
 
   get_action: (action) ->
-    req = { method: "GET", url: "#{@server_uri}/tenant/#{@tenant_id}/actions/#{action}"}
+    req = { method: "GET", url: "#{@ger_uri}/actions/#{action}"}
     qhttp.request(req)
     .then(parse_response_into_json_status)
 
   recommendations_for_person: (person, action) ->
-    req = { method: "GET", url: "#{@server_uri}/tenant/#{@tenant_id}/recommendations?person=#{person}&action=#{action}"}
+    req = { method: "GET", url: "#{@ger_uri}/recommendations?person=#{person}&action=#{action}"}
     qhttp.request(req)
     .then(parse_response_into_json_status)
 
@@ -55,7 +55,7 @@ class GERClient
     status_promise = q.defer()
     form = new FormData();
     form.append('events', stream, {filename: 'file.csv', contentType: 'text/csv' })
-    form.submit("#{@server_uri}/tenant/#{@tenant_id}/events/bootstrap", (err, resp) ->
+    form.submit("#{@ger_uri}/events/bootstrap", (err, resp) ->
       if err
         status_promise.reject(err)
         body_promise.reject(err)
@@ -69,12 +69,12 @@ class GERClient
     q.all( [ body_promise.promise, status_promise.promise])
 
   get_event_stats: ->
-    req = { method: "GET", url: "#{@server_uri}/tenant/#{@tenant_id}/events/stats"}
+    req = { method: "GET", url: "#{@ger_uri}/events/stats"}
     qhttp.request(req)
     .then(parse_response_into_json_status)
 
   compact_database: () ->
-    req = { method: "POST", body: [], url: "#{@server_uri}/tenant/#{@tenant_id}/compact"}
+    req = { method: "POST", body: [], url: "#{@ger_uri}/compact"}
     qhttp.request(req)
     .then(parse_response_into_json_status)
 
