@@ -1,6 +1,6 @@
 {
   "name": "ger-client",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Client to the Heroku Add-on Ger (currently in Alpha)",
   "url": "https://github.com/grahamjenson/ger-client",
   "main": "index.coffee",
