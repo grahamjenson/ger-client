@@ -1,6 +1,6 @@
 {
   "name": "ger-client",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Client to the Heroku Add-on Ger (currently in Alpha)",
   "url": "https://github.com/grahamjenson/ger-client",
   "main": "index.coffee",
@@ -19,5 +19,10 @@
     "q": "1.0.1",
     "form-data": "0.1.4",
     "q-io": "1.11.3"
+  },
+  "devDependencies": {
+    "minimist" : "1.1.0",
+    "split": "0.3.0",
+    "through": "2.3.6"
   }
 }
