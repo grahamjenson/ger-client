@@ -78,6 +78,11 @@ class GERClient
     qhttp.request(req)
     .then(parse_response_into_json_status)
 
+  compact_async_database: () ->
+    req = { method: "POST", body: [], url: "#{@ger_uri}/compact_async"}
+    qhttp.request(req)
+    .then(parse_response_into_json_status)
+
 #AMD
 if (typeof define != 'undefined' && define.amd)
   define([], -> return GERClient)
