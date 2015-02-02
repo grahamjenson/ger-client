@@ -1,10 +1,10 @@
 {
   "name": "ger-client",
-  "version": "0.0.5",
-  "description": "Client to the Heroku Add-on Ger (currently in Alpha)",
+  "version": "0.0.6",
+  "description": "Client to the HapiGER",
   "url": "https://github.com/grahamjenson/ger-client",
   "main": "index.coffee",
-  "keywords": ["ger", "heroku", "client"],
+  "keywords": ["ger", "hapi", "http", "client"],
   "repository": {
     "type": "git",
     "url": "https://github.com/grahamjenson/ger-client"
