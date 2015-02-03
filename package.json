@@ -1,6 +1,6 @@
 {
   "name": "ger-client",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Client to the HapiGER",
   "url": "https://github.com/grahamjenson/ger-client",
   "main": "index.coffee",
