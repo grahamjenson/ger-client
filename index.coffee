@@ -1,120 +1,104 @@
-q = require 'q'
+bb = require("bluebird")
+request = bb.promisify(require("request"))
 
-qhttp = require 'q-io/http'
+class Not200Error extends Error
+  constructor: (@message) ->
+    @name = "Not200Error"
+    Error.captureStackTrace(this, Not200Error)
 
-FormData = require('form-data');
-Readable = require('stream').Readable;
+process_response = (res) ->
+  response = res[0]
+  body = res[1]
+  json = JSON.parse(body)
+  status = response.statusCode
+  if status != 200
+    e = new Not200Error()
+    e.status = status
+    e.body = json
+    throw e
 
-parse_response_into_json_status = (response) ->
-  q.all([response.body.read(), response.status])
-  .spread( (body, status) ->
-    json = JSON.parse(body.toString())
-    [json, status]
-  )
+  [json, status]
 
 class GERClient
-  constructor : (@server_uri, @namespace) ->
-    @root_namespace_uri = "#{@server_uri}/namespace"
-    @namespace_uri = "#{@root_namespace_uri}/#{@namespace}"
-    @ger_uri = "#{@server_uri}/#{@namespace}"
+  constructor : (@server_uri) ->
 
-  destroy_namespace: ->
-    req = { 
-      method: "DELETE", 
-      url: "#{@namespace_uri}"
+  ########### NAMESPACE routes ################
+
+  destroy_namespace: (namespace) ->
+    req = {
+      method: "DELETE",
+      uri: "#{@server_uri}/namespaces/#{namespace}"
     }
-    qhttp.request(req)
-    .then(parse_response_into_json_status)
+    request(req)
+    .then(process_response)
 
-  show_namespace: ->
-    req = { 
-      method: "GET", 
-      url: "#{@namespace_uri}"
+  show_namespaces: ->
+    req = {
+      method: "GET",
+      uri: "#{@server_uri}/namespaces"
     }
-    qhttp.request(req)
-    .then(parse_response_into_json_status)
+    request(req)
+    .then(process_response)
 
-  create_namespace: ->
-    req = { 
-      method: "POST", 
-      body: [JSON.stringify({namespace: @namespace})], 
-      url: "#{@root_namespace_uri}"
+  create_namespace: (namespace)->
+    req = {
+      method: "POST",
+      body: JSON.stringify({namespace: namespace}),
+      uri: "#{@server_uri}/namespaces"
     }
-    qhttp.request(req)
-    .then(parse_response_into_json_status)
+    request(req)
+    .then(process_response)
 
-  event: (person, action, thing, session) ->
-    req = { 
-      method: "POST", 
-      body: [JSON.stringify({person: person, action: action, thing: thing, session: session})], 
-      url: "#{@ger_uri}/events"
+
+  ########### EVENTS routes ################
+
+  create_events: (events) ->
+    req = {
+      method: "POST",
+      body: JSON.stringify({events: events}),
+      uri: "#{@server_uri}/events"
     }
-    qhttp.request(req)
-    .then(parse_response_into_json_status)
+    request(req)
+    .then(process_response)
 
-  get_event: (person, action, thing) ->
-    url = "#{@ger_uri}/events?"
+  show_events: (namespace, person, action, thing) ->
+    uri = "#{@server_uri}/events?"
     params = []
+    params.push "namespace=#{namespace}"
     params.push "person=#{person}" if person
     params.push "action=#{action}" if action
     params.push "thing=#{thing}" if thing
-    url += params.join('&')
-    req = { method: "GET", url: url}
-    qhttp.request(req)
-    .then(parse_response_into_json_status)
+    uri += params.join('&')
+    req = { method: "GET", uri: uri}
+    request(req)
+    .then(process_response)
 
-  action: (action, weight) ->
-    req = { method: "POST", body: [JSON.stringify({name: action, weight: weight})], url: "#{@ger_uri}/actions"}
-    qhttp.request(req)
-    .then(parse_response_into_json_status)
 
-  get_action: (action) ->
-    req = { method: "GET", url: "#{@ger_uri}/actions/#{action}"}
-    qhttp.request(req)
-    .then(parse_response_into_json_status)
+  ########### RECOMMENDATIONS routes ################
 
-  recommendations_for_person: (person, action) ->
-    req = { method: "GET", url: "#{@ger_uri}/recommendations?person=#{person}&action=#{action}"}
+  create_recommendations: (rec_body) ->
+    req = {
+      method: "POST",
+      uri: "#{@server_uri}/recommendations"
+      body: JSON.stringify(rec_body)
+    }
 
-    qhttp.request(req)
-    .then(parse_response_into_json_status)
+    request(req)
+    .then(process_response)
 
-  bootstrap: (stream) ->
-    body_promise = q.defer()
-    status_promise = q.defer()
-    form = new FormData();
-    form.append('events', stream, {filename: 'file.csv', contentType: 'text/csv' })
-    form.submit("#{@ger_uri}/events/bootstrap", (err, resp) ->
-      if err
-        status_promise.reject(err)
-        body_promise.reject(err)
-      else
-        status_promise.resolve(resp.statusCode)
-        resp.on('data', (chunk) ->
-          body_promise.resolve( JSON.parse(chunk) )
-        )
-    )
 
-    q.all( [ body_promise.promise, status_promise.promise])
+  ########### Maintenance routes ################
 
-  get_event_stats: ->
-    req = { method: "GET", url: "#{@ger_uri}/events/stats"}
-    qhttp.request(req)
-    .then(parse_response_into_json_status)
+  create_compact: (namespace) ->
+    req = {
+      method: "POST",
+      body: JSON.stringify({namespace: namespace}),
+      uri: "#{@server_uri}/compact"
+    }
+    request(req)
+    .then(process_response)
 
-  compact_database: () ->
-    req = { method: "POST", body: [], url: "#{@ger_uri}/compact"}
-    qhttp.request(req)
-    .then(parse_response_into_json_status)
 
-  compact_database_async: () ->
-    req = { method: "POST", body: [], url: "#{@ger_uri}/compact_async"}
-    qhttp.request(req)
-    .then(parse_response_into_json_status)
+GERClient.Not200Error = Not200Error
 
-#AMD
-if (typeof define != 'undefined' && define.amd)
-  define([], -> return GERClient)
-#Node
-else if (typeof module != 'undefined' && module.exports)
-    module.exports = GERClient;
+module.exports = GERClient;
